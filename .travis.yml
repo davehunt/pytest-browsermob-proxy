@@ -1,0 +1,20 @@
+before_script:
+  - curl -k -L -o /tmp/browsermob-proxy.zip http://cloud.github.com/downloads/webmetrics/browsermob-proxy/browsermob-proxy-2.0-beta-6-bin.zip
+  - sudo unzip /tmp/browsermob-proxy.zip -d /tmp
+  - mv /tmp/browsermob-proxy-* /tmp/browsermob-proxy
+
+language: python
+python:
+  - 2.6
+  - 2.7
+
+install: python setup.py install
+
+script: py.test testing
+
+notifications:
+  email:
+    - dave.hunt@gmail.com
+  irc:
+    - "irc.mozilla.org#automation"
+    - "irc.mozilla.org#mozwebqa"
