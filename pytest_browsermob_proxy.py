@@ -33,6 +33,11 @@ def pytest_addoption(parser):
                      default=8080,
                      metavar='int',
                      help='port that browsermob proxy will be running on. (default: %default)')
+    group._addoption('--bmp-test-proxy',
+                     action='store_true',
+                     dest='bmp_test_proxy',
+                     default=False,
+                     help='start an additional browsermob proxy for every test. (default: %default)')
     group._addoption('--bmp-headers',
                      action='store',
                      dest='bmp_headers',
@@ -55,6 +60,7 @@ def pytest_addoption(parser):
                      help='password for browsermob proxy automatic basic authentication.')
 
 
+@pytest.mark.tryfirst
 def pytest_sessionstart(session):
     if hasattr(session.config, 'slaveinput') or session.config.option.collectonly:
         return
@@ -68,36 +74,34 @@ def pytest_sessionstart(session):
         else:
             raise Exception('Unable to locate BrowserMob proxy at %s' % session.config.option.browsermob_proxy_path)
 
+    session.config.browsermob_session_proxy = session.config.browsermob_server.create_proxy()
+    #print 'BrowserMob session proxy started (%s:%s)' % (session.config.option.bmp_host, session.config.browsermob_session_proxy.port)
+    configure_browsermob_proxy(session.config.browsermob_session_proxy, session.config)
+
 
 @pytest.mark.tryfirst
 def pytest_runtest_setup(item):
-    if hasattr(item.config, 'browsermob_server') and 'skip_browsermob_proxy' not in item.keywords:
-        item.config.browsermob_proxy = item.config.browsermob_server.create_proxy()
+    if item.config.option.bmp_test_proxy and \
+            hasattr(item.config, 'browsermob_server') and \
+            'skip_browsermob_proxy' not in item.keywords:
+
+        item.config.browsermob_test_proxy = item.config.browsermob_server.create_proxy()
+        #print 'BrowserMob test proxy started (%s:%s)' % (item.config.option.bmp_host, item.config.browsermob_test_proxy.port)
+        configure_browsermob_proxy(item.config.browsermob_test_proxy, item.config)
         #TODO make recording of har configurable
-        item.config.browsermob_proxy.new_har()
-
-        if item.config.option.bmp_headers:
-            item.config.browsermob_proxy.headers(json.loads(item.config.option.bmp_headers))
-
-        if all([item.config.option.bmp_domain,
-               item.config.option.bmp_username,
-               item.config.option.bmp_password]):
-            item.config.browsermob_proxy.basic_authentication(
-                item.config.option.bmp_domain,
-                item.config.option.bmp_username,
-                item.config.option.bmp_password)
+        item.config.browsermob_test_proxy.new_har()
 
 
 def pytest_runtest_teardown(item):
-    if hasattr(item.config, 'browsermob_proxy'):
-        item.config.browsermob_proxy.close()
+    if hasattr(item.config, 'browsermob_test_proxy'):
+        item.config.browsermob_test_proxy.close()
 
 
 def pytest_runtest_makereport(__multicall__, item, call):
     report = __multicall__.execute()
     if report.when == 'call':
-        if hasattr(item.config, 'browsermob_proxy') and hasattr(item, 'debug'):
-            item.debug['network_traffic'].append(json.dumps(item.config.browsermob_proxy.har()))
+        if hasattr(item.config, 'browsermob_test_proxy') and hasattr(item, 'debug'):
+            item.debug['network_traffic'].append(json.dumps(item.config.browsermob_test_proxy.har()))
     return report
 
 
@@ -105,5 +109,21 @@ def pytest_sessionfinish(session):
     if hasattr(session.config, 'slaveinput') or session.config.option.collectonly:
         return
 
+    if hasattr(session.config, 'browsermob_session_proxy'):
+        session.config.browsermob_session_proxy.close()
+
     if hasattr(session.config, 'browsermob_server'):
         session.config.browsermob_server.stop()
+
+
+def configure_browsermob_proxy(proxy, config):
+    if config.option.bmp_headers:
+        proxy.headers(json.loads(config.option.bmp_headers))
+
+    if all([config.option.bmp_domain,
+            config.option.bmp_username,
+            config.option.bmp_password]):
+        proxy.basic_authentication(
+            config.option.bmp_domain,
+            config.option.bmp_username,
+            config.option.bmp_password)
