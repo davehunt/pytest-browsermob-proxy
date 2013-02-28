@@ -88,6 +88,11 @@ def pytest_runtest_setup(item):
                 item.config.option.bmp_password)
 
 
+def pytest_runtest_teardown(item):
+    if hasattr(item.config, 'browsermob_proxy'):
+        item.config.browsermob_proxy.close()
+
+
 def pytest_runtest_makereport(__multicall__, item, call):
     report = __multicall__.execute()
     if report.when == 'call':
