@@ -16,39 +16,54 @@ __version__ = '0.1'
 
 def pytest_addoption(parser):
     group = parser.getgroup('browsermob proxy', 'browsermob proxy')
-    group._addoption('--browsermob-proxy-path',
+    group._addoption('--bmp-path',
                      action='store',
-                     dest='browsermob_proxy_path',
+                     dest='bmp_path',
                      metavar='path',
                      help='location of browsermob proxy.')
-    group._addoption('--browsermob-proxy-host',
+    group._addoption('--bmp-host',
                      action='store',
-                     dest='browsermob_proxy_host',
+                     dest='bmp_host',
                      default='localhost',
                      metavar='str',
                      help='host that browsermob proxy will be running on. (default: %default)')
-    group._addoption('--browsermob-proxy-port',
+    group._addoption('--bmp-port',
                      action='store',
-                     dest='browsermob_proxy_port',
+                     dest='bmp_port',
                      default=8080,
                      metavar='int',
                      help='port that browsermob proxy will be running on. (default: %default)')
-    group._addoption('--browsermob-proxy-headers',
+    group._addoption('--bmp-headers',
                      action='store',
-                     dest='browsermob_proxy_headers',
+                     dest='bmp_headers',
                      metavar='str',
                      help='json string of additional headers to set on each request.')
+    group._addoption('--bmp-domain',
+                     action='store',
+                     dest='bmp_domain',
+                     metavar='str',
+                     help='domain for browsermob proxy automatic basic authentication.')
+    group._addoption('--bmp-username',
+                     action='store',
+                     dest='bmp_username',
+                     metavar='str',
+                     help='username for browsermob proxy automatic basic authentication.')
+    group._addoption('--bmp-password',
+                     action='store',
+                     dest='bmp_password',
+                     metavar='str',
+                     help='password for browsermob proxy automatic basic authentication.')
 
 
 def pytest_sessionstart(session):
     if hasattr(session.config, 'slaveinput') or session.config.option.collectonly:
         return
 
-    if session.config.option.browsermob_proxy_path:
-        if os.path.isfile(session.config.option.browsermob_proxy_path):
+    if session.config.option.bmp_path:
+        if os.path.isfile(session.config.option.bmp_path):
             session.config.browsermob_server = Server(
-                session.config.option.browsermob_proxy_path,
-                {'port': int(session.config.option.browsermob_proxy_port)})
+                session.config.option.bmp_path,
+                {'port': int(session.config.option.bmp_port)})
             session.config.browsermob_server.start()
         else:
             raise Exception('Unable to locate BrowserMob proxy at %s' % session.config.option.browsermob_proxy_path)
@@ -61,8 +76,16 @@ def pytest_runtest_setup(item):
         #TODO make recording of har configurable
         item.config.browsermob_proxy.new_har()
 
-        if item.config.option.browsermob_proxy_headers:
-            item.config.browsermob_proxy.headers(json.loads(item.config.option.browsermob_proxy_headers))
+        if item.config.option.bmp_headers:
+            item.config.browsermob_proxy.headers(json.loads(item.config.option.bmp_headers))
+
+        if all([item.config.option.bmp_domain,
+               item.config.option.bmp_username,
+               item.config.option.bmp_password]):
+            item.config.browsermob_proxy.basic_authentication(
+                item.config.option.bmp_domain,
+                item.config.option.bmp_username,
+                item.config.option.bmp_password)
 
 
 def pytest_runtest_makereport(__multicall__, item, call):
