@@ -99,11 +99,14 @@ def pytest_sessionstart(session):
 def pytest_runtest_setup(item):
     logger = logging.getLogger(__name__)
 
-    if item.config.option.bmp_test_proxy and \
-            hasattr(item.config, 'browsermob_server') and \
-            'skip_browsermob_proxy' not in item.keywords:
+    if item.config.option.bmp_test_proxy and 'skip_browsermob_proxy' not in item.keywords:
 
-        item.config.browsermob_test_proxy = item.config.browsermob_server.create_proxy()
+        if hasattr(item.session.config, 'browsermob_server'):
+            server = item.session.config.browsermob_server
+        else:
+            server = Server(item.config.option.bmp_path, {'port': int(item.config.option.bmp_port)})
+
+        item.config.browsermob_test_proxy = server.create_proxy()
         logger.info('BrowserMob test proxy started (%s:%s)' % (item.config.option.bmp_host, item.config.browsermob_test_proxy.port))
         configure_browsermob_proxy(item.config.browsermob_test_proxy, item.config)
         #TODO make recording of har configurable
