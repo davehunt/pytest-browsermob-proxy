@@ -1,7 +1,7 @@
 before_script:
-  - curl -k -L -o /tmp/browsermob-proxy.zip http://cloud.github.com/downloads/webmetrics/browsermob-proxy/browsermob-proxy-2.0-beta-6-bin.zip
+  - curl -k -L -o /tmp/browsermob-proxy.zip https://s3-us-west-1.amazonaws.com/lightbody-bmp/browsermob-proxy-2.0-beta-8-bin.zip
   - sudo unzip /tmp/browsermob-proxy.zip -d /tmp
-  - mv /tmp/browsermob-proxy-* /tmp/browsermob-proxy
+  - ln -s /tmp/browsermob-proxy-2.0-beta-8 /tmp/browsermob-proxy
 
 language: python
 python:
