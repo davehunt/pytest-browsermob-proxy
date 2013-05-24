@@ -121,7 +121,7 @@ def pytest_runtest_makereport(__multicall__, item, call):
     report = __multicall__.execute()
     if report.when == 'call':
         if hasattr(item.config, 'browsermob_test_proxy') and hasattr(item, 'debug'):
-            item.debug['network_traffic'].append(json.dumps(item.config.browsermob_test_proxy.har()))
+            item.debug['network_traffic'].append(json.dumps(item.config.browsermob_test_proxy.har))
     return report
 
 
