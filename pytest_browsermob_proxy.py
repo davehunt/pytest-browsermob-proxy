@@ -88,11 +88,11 @@ def pytest_sessionstart(session):
             session.config.browsermob_server.start()
             logger.info('BrowserMob proxy server started (%s:%s)' % (session.config.option.bmp_host, session.config.option.bmp_port))
         else:
-            raise Exception('Unable to locate BrowserMob proxy at %s' % session.config.option.browsermob_proxy_path)
+            raise Exception('Unable to locate BrowserMob proxy at %s' % session.config.option.bmp_path)
 
-    session.config.browsermob_session_proxy = session.config.browsermob_server.create_proxy()
-    logger.info('BrowserMob session proxy started (%s:%s)' % (session.config.option.bmp_host, session.config.browsermob_session_proxy.port))
-    configure_browsermob_proxy(session.config.browsermob_session_proxy, session.config)
+        session.config.browsermob_session_proxy = session.config.browsermob_server.create_proxy()
+        logger.info('BrowserMob session proxy started (%s:%s)' % (session.config.option.bmp_host, session.config.browsermob_session_proxy.port))
+        configure_browsermob_proxy(session.config.browsermob_session_proxy, session.config)
 
 
 @pytest.mark.tryfirst

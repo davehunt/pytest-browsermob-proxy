@@ -1,7 +1,7 @@
 before_script:
-  - curl -k -L -o /tmp/browsermob-proxy.zip https://s3-us-west-1.amazonaws.com/lightbody-bmp/browsermob-proxy-2.0-beta-8-bin.zip
-  - sudo unzip /tmp/browsermob-proxy.zip -d /tmp
-  - ln -s /tmp/browsermob-proxy-2.0-beta-8 /tmp/browsermob-proxy
+  - curl -k -L -o browsermob-proxy.zip https://s3-us-west-1.amazonaws.com/lightbody-bmp/browsermob-proxy-2.0-beta-8-bin.zip
+  - unzip browsermob-proxy.zip
+  - export BMP_PATH=$TRAVIS_BUILD_DIR/browsermob-proxy-2.0-beta-8
 
 language: python
 python:

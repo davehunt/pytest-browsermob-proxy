@@ -4,6 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import os
+
 import pytest
 
 pytestmark = pytestmark = [pytest.mark.skip_browsermob_proxy,
@@ -26,9 +28,9 @@ def testProxy(testdir):
             response = urllib2.urlopen(req)
             assert response.read() == '{"port":9099}'
     """ % {'HOST': proxy_host, 'PORT': proxy_port})
-    reprec = testdir.inline_run('--browsermob-proxy-path=/tmp/browsermob-proxy/bin/browsermob-proxy',
-                                '--browsermob-proxy-host=%s' % proxy_host,
-                                '--browsermob-proxy-port=%s' % proxy_port,
+    reprec = testdir.inline_run('--bmp-path=%s/bin/browsermob-proxy' % os.environ.get('BMP_PATH', '/tmp/browsermob-proxy'),
+                                '--bmp-host=%s' % proxy_host,
+                                '--bmp-port=%s' % proxy_port,
                                 file_test)
     passed, skipped, failed = reprec.listoutcomes()
     assert len(passed) == 1
